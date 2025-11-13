@@ -28,7 +28,7 @@ app_path = "temp_space/app.py"
 # Read and replace
 text = open(app_path).read()
 text = text.replace(
-    'sriharimudakavi/engine-model',
+    'sriharimudakavi/engine-condition-xgboost-tuned',
     'sriharimudakavi/engine-condition-xgboost-tuned'
 )
 
