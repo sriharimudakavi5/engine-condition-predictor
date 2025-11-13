@@ -1,0 +1,35 @@
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import joblib
+from huggingface_hub import hf_hub_download
+
+st.title("⚙️ Predictive Maintenance: Engine Condition Predictor")
+
+st.write("Upload data or input manually to predict engine condition using XGBoost model.")
+model_path = hf_hub_download(repo_id="sriharimudakavi/engine-model", filename="xgboost_tuned_model.joblib")
+model = joblib.load(model_path)
+
+option = st.sidebar.selectbox("Input Method", ["Manual Entry", "Upload CSV"])
+
+if option == "Manual Entry":
+    rpm = st.number_input("Engine RPM", 0, 3000, 800)
+    oil_p = st.number_input("Lube Oil Pressure", 0.0, 10.0, 3.0)
+    fuel_p = st.number_input("Fuel Pressure", 0.0, 25.0, 6.0)
+    cool_p = st.number_input("Coolant Pressure", 0.0, 10.0, 2.0)
+    oil_t = st.number_input("Lube Oil Temp (°C)", 60.0, 120.0, 80.0)
+    cool_t = st.number_input("Coolant Temp (°C)", 60.0, 200.0, 90.0)
+    df = pd.DataFrame([[rpm, oil_p, fuel_p, cool_p, oil_t, cool_t]],
+                      columns=["Engine rpm", "Lub oil pressure", "Fuel pressure", "Coolant pressure", "lub oil temp", "Coolant temp"])
+    st.write(df)
+    if st.button("🔍 Predict Engine Condition"):
+        pred = model.predict(df)[0]
+        st.success(f"Predicted Condition: {'Normal' if pred==1 else 'Abnormal'}")
+else:
+    file = st.file_uploader("Upload CSV file", type=["csv"])
+    if file:
+        df = pd.read_csv(file)
+        preds = model.predict(df)
+        df["Predicted Condition"] = np.where(preds==1, "Normal", "Abnormal")
+        st.write(df)
